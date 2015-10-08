@@ -28,11 +28,9 @@ namespace TestAutoit
 {
     public partial class Form1 : Form
     {
-
-        int _cred = 0xFF0000;
-        int _cgreen = 0x008000;
-
         Point _point_State_color;
+        string _coding_error_msg;
+        CancellationTokenSource _tokenSrcCancel = new CancellationTokenSource();
 
         public Form1()
         {
@@ -41,88 +39,27 @@ namespace TestAutoit
             //button4_Click(this, EventArgs.Empty);
         }
 
-        IntPtr getWin(string win_desc)
+        void coding_done_handler(Task task)
         {
-            string msg;
-
-            if (AutoItX.WinExists(win_desc) != 1)
-            {
-                msg = string.Format("Unable to find window \"{0}\"", win_desc);
-                throw new Exception(msg);
-            }
-
-            IntPtr hwnd = AutoItX.WinGetHandle(win_desc);
-            if (AutoItX.WinExists(win_desc) != 1)
-            {
-                msg = string.Format("Unable to get handle for window \"{0}\"", win_desc);
-                throw new Exception(msg);
-            }
-
-            return hwnd;
+            bool canceled = task.IsCanceled;
+            var exception = task.Exception;
         }
 
-        IntPtr activate_win(string win_desc)
+        void coding_exception_handler(Task task)
         {
-            IntPtr hwnd = getWin(win_desc);
-
-            string msg;
-            int n = 0;
-            while (AutoItX.WinActive(hwnd) != 1)
-            {
-                AutoItX.WinActivate(hwnd);
-                Thread.Sleep(250);
-                if (n++ > 10)
-                {
-                    msg = string.Format("Unable to activate window \"{0}\"", win_desc);
-                    throw new Exception(msg);
-                }
-            }
-
-            return hwnd;
+            var exception = task.Exception;
+            string errmsg = exception.InnerException.Message;
+            _coding_error_msg = errmsg;
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
-            string win_desc = "[REGEXPTITLE:Ember Bootloader and Range Test .*]";
-            IntPtr hwnd = activate_win(win_desc);
-
-            AutoItX.Send("{SPACE}");
-
-            Thread.Sleep(500);
-            Stopwatch watch = new Stopwatch();
-            watch.Start();
-            int pixel_color = 0;
-            string msg;
-            while (true)
-            {
-                pixel_color = AutoItX.PixelGetColor(_point_State_color.X, _point_State_color.Y);
-
-                if (pixel_color == _cred)
-                {
-                    AutoItX.MouseMove(_point_State_color.X, _point_State_color.Y, 0);
-                    msg = string.Format("Red pixel at location X={0}, Y={1} after {2:F2} s",
-                        _point_State_color.X, _point_State_color.Y, watch.Elapsed.TotalSeconds);
-                    throw new Exception(msg);
-                }
-                else if (pixel_color == _cgreen)
-                {
-                    break;
-                }
-
-
-                Thread.Sleep(500);
-                if(watch.Elapsed.TotalMinutes > 2)
-                {
-                    AutoItX.MouseMove(_point_State_color.X, _point_State_color.Y, 0);
-                    msg = string.Format("Unable to detect either green or read pixel at location X={0}, Y={1} after {2} minutes",
-                        _point_State_color.X, _point_State_color.Y, watch.Elapsed.TotalMinutes);
-                    throw new Exception(msg);
-                }
-            }
-
-            AutoItX.MouseMove(_point_State_color.X, _point_State_color.Y, 0);
-            return;
-
+            Coder coder = new Coder(_point_State_color, new TimeSpan(0,2,0));
+            CancellationToken token = _tokenSrcCancel.Token;
+            Task task = new Task( () => coder.Code(token), token);
+            task.ContinueWith(coding_exception_handler, TaskContinuationOptions.OnlyOnFaulted);
+            task.ContinueWith(coding_done_handler, TaskContinuationOptions.OnlyOnRanToCompletion);
+            task.Start();
         }
 
         void MouseHook_MouseAction(object sender, EventArgs e)
@@ -199,6 +136,11 @@ namespace TestAutoit
             MouseHook.Start();
             MouseHook.MouseAction += MouseHook_MouseAction;
 
+        }
+
+        private void buttonCancel_Click(object sender, EventArgs e)
+        {
+            _tokenSrcCancel.Cancel();
         }
     }
 
