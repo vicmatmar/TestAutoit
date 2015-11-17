@@ -63,7 +63,7 @@ namespace TestAutoit
             return hwnd;
         }
 
-        public void Code(CancellationToken cancel)
+        public void Code(int count, CancellationToken cancel)
         {
             if (cancel.IsCancellationRequested)
                 return;
@@ -81,7 +81,7 @@ namespace TestAutoit
             int mod = random.Next(3, 5);
 
             int right_or_left = right;
-            for (int i = 0; i < 500; i++)
+            for (int i = 0; i < count; i++)
             {
                 AutoItX.MouseMove(right_or_left, pos.Y + 500, 2);
                 AutoItX.MouseClick();

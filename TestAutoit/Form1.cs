@@ -47,9 +47,12 @@ namespace TestAutoit
 
         private void button2_Click(object sender, EventArgs e)
         {
+
+            int count = Convert.ToInt32( this.textBoxCount.Text );
+
             Coder coder = new Coder(new TimeSpan(0,2,0));
             CancellationToken token = _tokenSrcCancel.Token;
-            Task task = new Task( () => coder.Code(token), token);
+            Task task = new Task( () => coder.Code(count, token), token);
             task.ContinueWith(coding_exception_handler, TaskContinuationOptions.OnlyOnFaulted);
             task.ContinueWith(coding_done_handler, TaskContinuationOptions.OnlyOnRanToCompletion);
             task.Start();
@@ -62,7 +65,7 @@ namespace TestAutoit
             MouseHook.POINT p = new MouseHook.POINT();
             MouseHook.GetCursorPos(out p);
 
-            label1.Text = string.Format("X = {0}, Y = {1}", p.x, p.y);
+            string label1= string.Format("X = {0}, Y = {1}", p.x, p.y);
 
             _point_State_color = new Point(p.x, p.y);
 
