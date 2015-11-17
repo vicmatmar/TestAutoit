@@ -9,7 +9,7 @@ using System.Diagnostics;
 
 using AutoIt;
 
-namespace TestAutoit
+namespace powercal
 {
     class Coder
     {
@@ -18,10 +18,12 @@ namespace TestAutoit
         Point _point_State_color;
         TimeSpan _timeout;
 
+        public Coder() { }
+
         public Coder(Point point_State_color, TimeSpan timeout)
         {
             _point_State_color = point_State_color;
-            if(_point_State_color.X == 0 && _point_State_color.Y == 0)
+            if (_point_State_color.X == 0 && _point_State_color.Y == 0)
             {
                 string msg = string.Format("Point to check State color not set");
                 throw new Exception(msg);
@@ -29,7 +31,7 @@ namespace TestAutoit
             _timeout = timeout;
         }
 
-        IntPtr getWin(string win_desc)
+        static public IntPtr getWin(string win_desc)
         {
             string msg;
 
@@ -49,7 +51,7 @@ namespace TestAutoit
             return hwnd;
         }
 
-        IntPtr activate_win(string win_desc)
+        static public IntPtr activate_win(string win_desc)
         {
             IntPtr hwnd = getWin(win_desc);
 
@@ -77,8 +79,10 @@ namespace TestAutoit
             string win_desc = "[REGEXPTITLE:Ember Bootloader and Range Test .*]";
             IntPtr hwnd = activate_win(win_desc);
             AutoItX.MouseMove(_point_State_color.X, _point_State_color.Y, 0);
+
             AutoItX.Send("{SPACE}");
-            Thread.Sleep(500);
+            Thread.Sleep(2000);
+
             Stopwatch watch = new Stopwatch();
             watch.Start();
             int pixel_color = 0;

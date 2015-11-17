@@ -23,6 +23,7 @@ using TestStack.White.UIItems.WindowItems;
 using TestStack.White.UIItems.WindowStripControls;
 
 
+using powercal;
 
 namespace TestAutoit
 {
@@ -31,6 +32,10 @@ namespace TestAutoit
         Point _point_State_color;
         string _coding_error_msg;
         CancellationTokenSource _tokenSrcCancel = new CancellationTokenSource();
+
+        string _win_desc = "[REGEXPTITLE:Ember Bootloader and Range Test .*]";
+        IntPtr _hwnd;
+
 
         public Form1()
         {
@@ -75,7 +80,7 @@ namespace TestAutoit
 
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        void testAutomation()
         {
             AutomationElement desktop = AutomationElement.RootElement;
 
@@ -109,7 +114,14 @@ namespace TestAutoit
             Debug.Assert(list.Count > 0);
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void buttonStart_Click(object sender, EventArgs e)
+        {
+            activate();
+            Point p = guessStartTest_AbortTestPos();
+            AutoItX.MouseClick("LEFT", p.X, p.Y, 1, 10);
+        }
+
+        void testWhite()
         {
             List<TestStack.White.UIItems.WindowItems.Window> list = TestStack.White.Desktop.Instance.Windows();
             TestStack.White.UIItems.WindowItems.Window win = null;
@@ -128,6 +140,13 @@ namespace TestAutoit
             TestStack.White.UIItems.Button b = win.Get<TestStack.White.UIItems.Button>("UnLoad");
             bool t2 = win.HasPopup();
 
+        }
+
+        private void buttonRetry_Click(object sender, EventArgs e)
+        {
+            activate();
+            Point p = guessRetryPos();
+            AutoItX.MouseClick("LEFT", p.X, p.Y, 1, 10);
 
         }
 
@@ -142,6 +161,114 @@ namespace TestAutoit
         {
             _tokenSrcCancel.Cancel();
         }
+
+        private void buttonGuessXY_Click(object sender, EventArgs e)
+        {
+
+            activate();
+
+            Rectangle rec_grid = getGridPos();
+
+            AutoItX.MouseMove(0, 0, 5);
+
+            Point point_status = guessStatusPos();
+            mouseMove(point_status, 20);
+
+            Point point_start_btn = guessStartTest_AbortTestPos();
+            mouseMove(point_start_btn, 20);
+
+            Point point_retry = guessRetryPos();
+            mouseMove(point_retry, 20);
+
+        }
+
+        void mouseMove(Point point, int speed=0)
+        {
+            AutoItX.MouseMove(point.X, point.Y, speed);
+        }
+
+        void activate()
+        {
+            _hwnd = Coder.activate_win(_win_desc);
+        }
+
+        IntPtr getMenu()
+        {
+            return AutoItX.ControlGetHandle(_hwnd, "[NAME:menuStrip1]");
+        }
+
+        IntPtr getGrid()
+        {
+            return  AutoItX.ControlGetHandle(_hwnd, "[NAME:gridTesting]");
+        }
+
+        IntPtr getComboBox4()
+        {
+            return AutoItX.ControlGetHandle(_hwnd, "[REGEXPCLASS:.*COMBOBOX.*; INSTANCE:4]");
+        }
+
+        Rectangle getGridPos()
+        {
+            Rectangle rec_wnd = AutoItX.WinGetPos(_hwnd);
+
+            IntPtr hmenu = getMenu();
+            Rectangle rec_menu = AutoItX.ControlGetPos(_hwnd, hmenu);
+
+            IntPtr hgrid = getGrid();
+            Rectangle rec_grid = AutoItX.ControlGetPos(_hwnd, hgrid);
+
+            int x = rec_wnd.X + rec_grid.X;
+            int y = rec_wnd.Y + rec_grid.Y + rec_menu.Height;
+
+            Rectangle rec = new Rectangle(x, y, rec_grid.Width, rec_grid.Height);
+            return rec;
+
+        }
+
+        Point guessStatusPos()
+        {
+            Rectangle rec_grid = getGridPos();
+
+            int x = rec_grid.X + 215;
+            int y = rec_grid.Y + 30;
+
+            return new Point(x, y);
+        }
+
+        Rectangle getCombo4Pos()
+        {
+            IntPtr hc = getComboBox4();
+            Rectangle rec_combo4 = AutoItX.ControlGetPos(_hwnd, hc);
+
+            Rectangle rec_wnd = AutoItX.WinGetPos(_hwnd);
+            IntPtr hmenu = getMenu();
+            Rectangle rec_menu = AutoItX.ControlGetPos(_hwnd, hmenu);
+
+            int x = rec_wnd.X + rec_combo4.X;
+            int y = rec_wnd.Y + rec_combo4.Y + rec_menu.Height;
+
+            Rectangle rec = new Rectangle(x, y, rec_combo4.Width, rec_combo4.Height);
+            return rec;
+
+        }
+
+        Point guessStartTest_AbortTestPos()
+        {
+            Rectangle rec_combo4 = getCombo4Pos();
+
+            int x = rec_combo4.X + 200;
+            int y = rec_combo4.Y + rec_combo4.Height / 2 + 5;
+
+            return new Point(x, y);
+        }
+
+        Point guessRetryPos()
+        {
+            Point point = guessStartTest_AbortTestPos();
+
+            return new Point(point.X + 65, point.Y);
+        }
+
     }
 
 }
