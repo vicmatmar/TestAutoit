@@ -28,48 +28,71 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.buttonCode = new System.Windows.Forms.Button();
-            this.textBoxCount = new System.Windows.Forms.TextBox();
-            this.labelCount = new System.Windows.Forms.Label();
+            this.buttonStart = new System.Windows.Forms.Button();
+            this.numericUpDownCount = new System.Windows.Forms.NumericUpDown();
+            this.label1 = new System.Windows.Forms.Label();
+            this.labelStatus = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCount)).BeginInit();
             this.SuspendLayout();
             // 
-            // buttonCode
+            // buttonStart
             // 
-            this.buttonCode.Location = new System.Drawing.Point(157, 61);
-            this.buttonCode.Name = "buttonCode";
-            this.buttonCode.Size = new System.Drawing.Size(75, 23);
-            this.buttonCode.TabIndex = 1;
-            this.buttonCode.Text = "Code";
-            this.buttonCode.UseVisualStyleBackColor = true;
-            this.buttonCode.Click += new System.EventHandler(this.button2_Click);
+            this.buttonStart.Location = new System.Drawing.Point(57, 60);
+            this.buttonStart.Name = "buttonStart";
+            this.buttonStart.Size = new System.Drawing.Size(75, 23);
+            this.buttonStart.TabIndex = 1;
+            this.buttonStart.Text = "&Start";
+            this.buttonStart.UseVisualStyleBackColor = true;
+            this.buttonStart.Click += new System.EventHandler(this.start_Click);
             // 
-            // textBoxCount
+            // numericUpDownCount
             // 
-            this.textBoxCount.Location = new System.Drawing.Point(33, 61);
-            this.textBoxCount.Name = "textBoxCount";
-            this.textBoxCount.Size = new System.Drawing.Size(100, 20);
-            this.textBoxCount.TabIndex = 2;
-            this.textBoxCount.Text = "500";
+            this.numericUpDownCount.Location = new System.Drawing.Point(57, 18);
+            this.numericUpDownCount.Maximum = new decimal(new int[] {
+            10000000,
+            0,
+            0,
+            0});
+            this.numericUpDownCount.Name = "numericUpDownCount";
+            this.numericUpDownCount.Size = new System.Drawing.Size(86, 20);
+            this.numericUpDownCount.TabIndex = 4;
+            this.numericUpDownCount.Value = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.numericUpDownCount.ValueChanged += new System.EventHandler(this.numericUpDownCount_ValueChanged);
             // 
-            // labelCount
+            // label1
             // 
-            this.labelCount.AutoSize = true;
-            this.labelCount.Location = new System.Drawing.Point(91, 138);
-            this.labelCount.Name = "labelCount";
-            this.labelCount.Size = new System.Drawing.Size(35, 13);
-            this.labelCount.TabIndex = 3;
-            this.labelCount.Text = "label1";
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(13, 18);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(38, 13);
+            this.label1.TabIndex = 5;
+            this.label1.Text = "Count:";
+            // 
+            // labelStatus
+            // 
+            this.labelStatus.AutoSize = true;
+            this.labelStatus.Location = new System.Drawing.Point(12, 94);
+            this.labelStatus.Name = "labelStatus";
+            this.labelStatus.Size = new System.Drawing.Size(35, 13);
+            this.labelStatus.TabIndex = 6;
+            this.labelStatus.Text = "label2";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(284, 262);
-            this.Controls.Add(this.labelCount);
-            this.Controls.Add(this.textBoxCount);
-            this.Controls.Add(this.buttonCode);
+            this.ClientSize = new System.Drawing.Size(191, 116);
+            this.Controls.Add(this.labelStatus);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.numericUpDownCount);
+            this.Controls.Add(this.buttonStart);
             this.Name = "Form1";
             this.Text = "Form1";
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownCount)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -77,9 +100,10 @@
 
         #endregion
 
-        private System.Windows.Forms.Button buttonCode;
-        private System.Windows.Forms.TextBox textBoxCount;
-        private System.Windows.Forms.Label labelCount;
+        private System.Windows.Forms.Button buttonStart;
+        private System.Windows.Forms.NumericUpDown numericUpDownCount;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label labelStatus;
     }
 }
 

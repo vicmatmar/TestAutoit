@@ -13,15 +13,16 @@ namespace TestAutoit
 {
     class Coder
     {
-        int _cred = 0xFF0000;
-        int _cgreen = 0x008000;
-        Point _point_State_color;
-        TimeSpan _timeout;
 
-        public Coder(TimeSpan timeout)
+        public Coder()
         {
-            _timeout = timeout;
         }
+
+        public delegate void ClickEventHandler();
+        public event ClickEventHandler ClickEvent;
+
+        uint _count = 0;
+        public uint Count { get { return _count; } set { _count = value; } }
 
         IntPtr getWin(string win_desc)
         {
@@ -63,8 +64,10 @@ namespace TestAutoit
             return hwnd;
         }
 
-        public void Code(int count, CancellationToken cancel)
+        public void Code(uint count, CancellationToken cancel)
         {
+            Count = count;
+
             if (cancel.IsCancellationRequested)
                 return;
 
@@ -81,11 +84,18 @@ namespace TestAutoit
             int mod = random.Next(3, 5);
 
             int right_or_left = right;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < Count; i++)
             {
+                if (cancel.IsCancellationRequested)
+                    return;
+
                 AutoItX.MouseMove(right_or_left, pos.Y + 500, 2);
                 AutoItX.MouseClick();
-                Thread.Sleep(2000);
+
+                if (ClickEvent != null)
+                    ClickEvent();
+
+                Thread.Sleep(2500);
 
                 if (i % mod == 0)
                 {

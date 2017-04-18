@@ -25,38 +25,122 @@ namespace TestAutoit
         string _coding_error_msg;
         CancellationTokenSource _tokenSrcCancel = new CancellationTokenSource();
 
+        Coder _coder;
+        uint _click_count = 0;
+
+        Boolean _started = false;
+        Boolean Started
+        {
+            get { return _started; }
+            set
+            {
+                _started = value;
+
+                string buttonText = "&Start";
+                if (_started)
+                    buttonText = "&Stop";
+                synchronizedInvoke(buttonStart,
+                    delegate ()
+                    {
+                        buttonStart.Text = buttonText;
+                    });
+            }
+        }
+
         public Form1()
         {
             InitializeComponent();
 
-            //button4_Click(this, EventArgs.Empty);
+            numericUpDownCount.Minimum = 1;
+            numericUpDownCount.Maximum = Decimal.MaxValue;
+
+            labelStatus.Text = string.Format("Clicks = {0}", _click_count);
         }
 
-        void coding_done_handler(Task task)
+        void done_handler(Task task)
         {
+            Started = false;
+
             bool canceled = task.IsCanceled;
             var exception = task.Exception;
         }
 
         void coding_exception_handler(Task task)
         {
+            Started = false;
             var exception = task.Exception;
             string errmsg = exception.InnerException.Message;
             _coding_error_msg = errmsg;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void start_Click(object sender, EventArgs e)
         {
+            if (buttonStart.Text == "&Start")
+            {
+                uint count = Convert.ToUInt32(numericUpDownCount.Value);
+                _click_count = 0;
 
-            int count = Convert.ToInt32( this.textBoxCount.Text );
+                _coder = new Coder();
+                _coder.ClickEvent += Coder_ClickEvent;
 
-            Coder coder = new Coder(new TimeSpan(0,2,0));
-            CancellationToken token = _tokenSrcCancel.Token;
-            Task task = new Task( () => coder.Code(count, token), token);
-            task.ContinueWith(coding_exception_handler, TaskContinuationOptions.OnlyOnFaulted);
-            task.ContinueWith(coding_done_handler, TaskContinuationOptions.OnlyOnRanToCompletion);
-            task.Start();
+                _tokenSrcCancel = new CancellationTokenSource();
+                Task task = new Task(() => _coder.Code(count, _tokenSrcCancel.Token), _tokenSrcCancel.Token);
+                task.ContinueWith(coding_exception_handler, TaskContinuationOptions.OnlyOnFaulted);
+                task.ContinueWith(done_handler, TaskContinuationOptions.OnlyOnRanToCompletion);
+
+                task.Start();
+                Started = true;
+            }
+            else
+            {
+                _tokenSrcCancel.Cancel();
+            }
+
         }
+
+        private void Coder_ClickEvent()
+        {
+            _click_count++;
+
+            synchronizedInvoke(labelStatus,
+                delegate () {
+                    labelStatus.Text = string.Format("Clicks = {0}, ToGo = {1}", _click_count, numericUpDownCount.Value-_click_count);
+                }  );
+        }
+
+        void syncControlEnable(Control control, Boolean enabled)
+        {
+            synchronizedInvoke(control,
+                delegate ()
+                {
+                    control.Enabled = enabled;
+                });
+        }
+
+        void synchronizedInvoke(ISynchronizeInvoke sync, Action action)
+        {
+            // If the invoke is not required, then invoke here and get out.
+            if (!sync.InvokeRequired)
+            {
+                // Execute action.
+                action();
+
+                // Get out.
+                return;
+            }
+
+            try
+            {
+                // Marshal to the required context.
+                sync.Invoke(action, new object[] { });
+                //sync.BeginInvoke(action, new object[] { });
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.Message;
+            }
+        }
+
 
         void MouseHook_MouseAction(object sender, EventArgs e)
         {
@@ -65,7 +149,7 @@ namespace TestAutoit
             MouseHook.POINT p = new MouseHook.POINT();
             MouseHook.GetCursorPos(out p);
 
-            string label1= string.Format("X = {0}, Y = {1}", p.x, p.y);
+            string label1 = string.Format("X = {0}, Y = {1}", p.x, p.y);
 
             _point_State_color = new Point(p.x, p.y);
 
@@ -116,6 +200,12 @@ namespace TestAutoit
         private void button4_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void numericUpDownCount_ValueChanged(object sender, EventArgs e)
+        {
+            if (_coder != null)
+                _coder.Count = Convert.ToUInt32(numericUpDownCount.Value);
         }
     }
 
