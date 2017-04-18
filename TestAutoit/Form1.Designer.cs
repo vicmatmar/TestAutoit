@@ -37,7 +37,7 @@
             // 
             // buttonStart
             // 
-            this.buttonStart.Location = new System.Drawing.Point(57, 60);
+            this.buttonStart.Location = new System.Drawing.Point(58, 47);
             this.buttonStart.Name = "buttonStart";
             this.buttonStart.Size = new System.Drawing.Size(75, 23);
             this.buttonStart.TabIndex = 1;
@@ -47,7 +47,7 @@
             // 
             // numericUpDownCount
             // 
-            this.numericUpDownCount.Location = new System.Drawing.Point(57, 18);
+            this.numericUpDownCount.Location = new System.Drawing.Point(75, 14);
             this.numericUpDownCount.Maximum = new decimal(new int[] {
             10000000,
             0,
@@ -66,7 +66,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(13, 18);
+            this.label1.Location = new System.Drawing.Point(31, 14);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(38, 13);
             this.label1.TabIndex = 5;

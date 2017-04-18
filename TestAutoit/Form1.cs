@@ -17,6 +17,7 @@ using AutoIt;
 using System.Windows.Automation;
 using System.Text.RegularExpressions;
 
+
 namespace TestAutoit
 {
     public partial class Form1 : Form
@@ -47,6 +48,8 @@ namespace TestAutoit
             }
         }
 
+        KeyboardHook _keyboard_hook = new KeyboardHook();
+
         public Form1()
         {
             InitializeComponent();
@@ -55,6 +58,43 @@ namespace TestAutoit
             numericUpDownCount.Maximum = Decimal.MaxValue;
 
             labelStatus.Text = string.Format("Clicks = {0}", _click_count);
+
+            _keyboard_hook.KeyPressed += _keyboard_hook_KeyPressed;
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.S);
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.D);
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.Up);
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.Down);
+
+        }
+
+        private void _keyboard_hook_KeyPressed(object sender, KeyPressedEventArgs e)
+        {
+            if (e.Modifier == global::ModifierKeys.Control)
+            {
+                switch (e.Key)
+                {
+                    case Keys.S:
+                        start();
+                        break;
+                    case Keys.D:
+                        stop();
+                        break;
+                    case Keys.Up:
+                        numericUpDownCount.Value++;
+                        break;
+                    case Keys.Down:
+                        numericUpDownCount.Value--;
+                        break;
+                }
+            }
+        }
+
+        void stop()
+        {
+            if (_tokenSrcCancel != null)
+                _tokenSrcCancel.Cancel();
+
+            Started = false;
         }
 
         void done_handler(Task task)
@@ -73,9 +113,13 @@ namespace TestAutoit
             _coding_error_msg = errmsg;
         }
 
-        private void start_Click(object sender, EventArgs e)
+        void start()
         {
-            if (buttonStart.Text == "&Start")
+            if (Started)
+                return;
+
+            Started = true;
+            try
             {
                 uint count = Convert.ToUInt32(numericUpDownCount.Value);
                 _click_count = 0;
@@ -91,9 +135,20 @@ namespace TestAutoit
                 task.Start();
                 Started = true;
             }
+            catch
+            {
+                stop();
+            }
+        }
+        private void start_Click(object sender, EventArgs e)
+        {
+            if (buttonStart.Text == "&Start")
+            {
+                start();
+            }
             else
             {
-                _tokenSrcCancel.Cancel();
+                stop();
             }
 
         }
@@ -103,9 +158,10 @@ namespace TestAutoit
             _click_count++;
 
             synchronizedInvoke(labelStatus,
-                delegate () {
-                    labelStatus.Text = string.Format("Clicks = {0}, ToGo = {1}", _click_count, numericUpDownCount.Value-_click_count);
-                }  );
+                delegate ()
+                {
+                    labelStatus.Text = string.Format("Clicks = {0}, ToGo = {1}", _click_count, numericUpDownCount.Value - _click_count);
+                });
         }
 
         void syncControlEnable(Control control, Boolean enabled)
