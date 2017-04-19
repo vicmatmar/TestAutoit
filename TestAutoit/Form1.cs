@@ -29,6 +29,8 @@ namespace TestAutoit
         Coder _coder;
         uint _click_count = 0;
 
+        System.Windows.Forms.Timer _click_delay_timer;
+
         Boolean _started = false;
         Boolean Started
         {
@@ -39,12 +41,34 @@ namespace TestAutoit
 
                 string buttonText = "&Start";
                 if (_started)
+                {
                     buttonText = "&Stop";
+
+                    _click_delay_timer.Start();
+                }
+
                 synchronizedInvoke(buttonStart,
                     delegate ()
                     {
                         buttonStart.Text = buttonText;
                     });
+            }
+        }
+
+        int _click_delay = 2500;
+        int clickDelay
+        {
+            get
+            {
+                if (_coder != null)
+                    _click_delay = _coder.ClickDelay;
+                return _click_delay;
+            }
+            set
+            {
+                if (_coder != null)
+                    _coder.ClickDelay = value;
+                _click_delay = value;
             }
         }
 
@@ -58,13 +82,34 @@ namespace TestAutoit
             numericUpDownCount.Maximum = Decimal.MaxValue;
 
             labelStatus.Text = string.Format("Clicks = {0}", _click_count);
+            labelClickTimer.Text = string.Format("{0}", clickDelay);
 
             _keyboard_hook.KeyPressed += _keyboard_hook_KeyPressed;
             _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.S);
             _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.D);
             _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.Up);
             _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.Down);
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.T);
+            _keyboard_hook.RegisterHotKey(global::ModifierKeys.Control, Keys.G);
 
+            _click_delay_timer = new System.Windows.Forms.Timer();
+            _click_delay_timer.Interval = 250;
+            _click_delay_timer.Tick += _click_delay_timer_Tick;
+        }
+
+        private void _click_delay_timer_Tick(object sender, EventArgs e)
+        {
+            if (_click_delay_timer.Tag == null)
+                _click_delay_timer.Tag = clickDelay;
+
+            int tleft = (int)_click_delay_timer.Tag;
+            tleft -= _click_delay_timer.Interval;
+            _click_delay_timer.Tag = tleft;
+
+            synchronizedInvoke(labelClickTimer, delegate ()
+                {
+                    labelClickTimer.Text = string.Format("{0}", tleft);
+                });
         }
 
         private void _keyboard_hook_KeyPressed(object sender, KeyPressedEventArgs e)
@@ -85,6 +130,17 @@ namespace TestAutoit
                     case Keys.Down:
                         numericUpDownCount.Value--;
                         break;
+                    case Keys.T:
+                        clickDelay += 1000;
+                        labelClickTimer.Text = string.Format("{0}", clickDelay);
+                        break;
+                    case Keys.G:
+                        if (clickDelay > 1000)
+                        {
+                            clickDelay -= 1000;
+                            labelClickTimer.Text = string.Format("{0}", clickDelay);
+                        }
+                        break;
                 }
             }
         }
@@ -95,6 +151,8 @@ namespace TestAutoit
                 _tokenSrcCancel.Cancel();
 
             Started = false;
+            _click_delay_timer.Stop();
+
         }
 
         void done_handler(Task task)
@@ -103,6 +161,8 @@ namespace TestAutoit
 
             bool canceled = task.IsCanceled;
             var exception = task.Exception;
+
+            _click_delay_timer.Stop();
         }
 
         void coding_exception_handler(Task task)
@@ -111,6 +171,8 @@ namespace TestAutoit
             var exception = task.Exception;
             string errmsg = exception.InnerException.Message;
             _coding_error_msg = errmsg;
+
+            _click_delay_timer.Stop();
         }
 
         void start()
@@ -125,6 +187,7 @@ namespace TestAutoit
                 _click_count = 0;
 
                 _coder = new Coder();
+                _coder.ClickDelay = _click_delay;
                 _coder.ClickEvent += Coder_ClickEvent;
 
                 _tokenSrcCancel = new CancellationTokenSource();
@@ -156,6 +219,8 @@ namespace TestAutoit
         private void Coder_ClickEvent()
         {
             _click_count++;
+
+            _click_delay_timer.Tag = clickDelay;
 
             synchronizedInvoke(labelStatus,
                 delegate ()

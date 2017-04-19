@@ -24,6 +24,9 @@ namespace TestAutoit
         uint _count = 0;
         public uint Count { get { return _count; } set { _count = value; } }
 
+        int _click_delay = 2500;
+        public int ClickDelay { get { return _click_delay; } set { _click_delay = value; } }
+
         IntPtr getWin(string win_desc)
         {
             string msg;
@@ -67,7 +70,11 @@ namespace TestAutoit
         public void Code(uint count, CancellationToken cancel)
         {
             Count = count;
+            Code(cancel);
+        }
 
+        public void Code(CancellationToken cancel)
+        {
             if (cancel.IsCancellationRequested)
                 return;
 
@@ -92,10 +99,12 @@ namespace TestAutoit
                 AutoItX.MouseMove(right_or_left, pos.Y + 500, 2);
                 AutoItX.MouseClick();
 
+                // Notify we clicked
                 if (ClickEvent != null)
                     ClickEvent();
 
-                Thread.Sleep(2500);
+                // Wait until next click
+                Thread.Sleep(ClickDelay);
 
                 if (i % mod == 0)
                 {
